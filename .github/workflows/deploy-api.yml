@@ -23,16 +23,6 @@ jobs:
           cd api
           npm ci
 
-      - name: Build (if using TypeScript)
-        run: |
-          cd api
-          npm run build
-
-      - name: Copy .env.sample to .env
-        run: |
-          cd api
-          cp .env.sample .env
-
       - name: Replace environment variables in .env
         run: |
           cd api
@@ -44,13 +34,22 @@ jobs:
           sed -i 's|RAILWAY_TOKEN=.*|RAILWAY_TOKEN=${{ secrets.RAILWAY_TOKEN }}|' .env
           # Add more lines for other variables as needed
 
+      - name: Build (if using TypeScript)
+        run: |
+          cd api
+          npm run build
+
+      - name: Copy .env.sample to .env
+        run: |
+          cd api
+          cp .env.sample .env
+
       - name: Install Railway CLI
         run: npm install -g @railway/cli
 
       - name: Deploy to Railway
         run: |
           cd api
-          grep DATABASE_URL .env
           railway up
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
