@@ -2,6 +2,7 @@
   <div>
     <div class="d-flex justify-content-between align-items-center mb-2">
       <h2 class="h5">Loan Applications</h2>
+      <button class="btn btn-success" @click="showAddModal = true">Add</button>
     </div>
     <div v-if="loading" class="d-flex justify-content-center my-4">
       <div class="spinner-border text-primary" role="status">
@@ -47,6 +48,62 @@
       </ul>
     </nav>
 
+    <!-- Add Loan Modal -->
+    <div class="modal fade" tabindex="-1" :class="{ show: showAddModal }" style="display: block;" v-if="showAddModal">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Add Loan Application</h5>
+            <button type="button" class="btn-close" @click="closeAddModal"></button>
+          </div>
+          <form @submit.prevent="addLoan">
+            <div class="modal-body">
+              <div class="mb-3">
+                <label class="form-label">Applicant Name</label>
+                <input v-model="newLoan.applicantName" class="form-control" required pattern="[a-zA-Z\s\-']+" />
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Requested Amount</label>
+                <input v-model.number="newLoan.requestedAmount" type="number" min="1" class="form-control" required />
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Status</label>
+                <select v-model="newLoan.status" class="form-select" required>
+                  <option value="PENDING">PENDING</option>
+                  <option value="APPROVED">APPROVED</option>
+                  <option value="REJECTED">REJECTED</option>
+                </select>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" @click="closeAddModal">Cancel</button>
+              <button type="submit" class="btn btn-success">Add</button>
+            </div>
+          </form>
+        </div>
+      </div>
+      <div class="modal-backdrop fade show"></div>
+    </div>
+
+    <!-- Add Success Modal -->
+    <div class="modal fade" tabindex="-1" :class="{ show: showAddSuccessModal }" style="display: block;" v-if="showAddSuccessModal">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Success</h5>
+            <button type="button" class="btn-close" @click="closeAddSuccessModal"></button>
+          </div>
+          <div class="modal-body">
+            <p>Loan application added!</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary" @click="closeAddSuccessModal">OK</button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-backdrop fade show"></div>
+    </div>
+
     <!-- Delete Confirmation Modal -->
     <div class="modal fade" tabindex="-1" :class="{ show: showDeleteModal }" style="display: block;" v-if="showDeleteModal">
       <div class="modal-dialog">
@@ -83,6 +140,13 @@ export default {
       loading: false,
       showDeleteModal: false,
       loanToDelete: null,
+      showAddModal: false,
+      showAddSuccessModal: false,
+      newLoan: {
+        applicantName: '',
+        requestedAmount: '',
+        status: 'PENDING',
+      },
     };
   },
   methods: {
@@ -90,7 +154,6 @@ export default {
       this.loading = true;
       try {
         const data = await LoanApi.getLoans(this.page, this.pageSize);
-        console.log('loans', data);
         this.loans = data.data;
         this.totalPages = data.totalPages;
         this.total = data.total;
@@ -124,6 +187,21 @@ export default {
       await LoanApi.deleteLoan(this.loanToDelete.id);
       this.closeDeleteModal();
       this.fetchLoans();
+      this.$emit('refresh-summary');
+    },
+    closeAddModal() {
+      this.showAddModal = false;
+      this.newLoan = { applicantName: '', requestedAmount: '', status: 'PENDING' };
+    },
+    async addLoan() {
+      await LoanApi.createLoan(this.newLoan);
+      this.closeAddModal();
+      this.showAddSuccessModal = true;
+      this.fetchLoans();
+      this.$emit('refresh-summary');
+    },
+    closeAddSuccessModal() {
+      this.showAddSuccessModal = false;
     },
   },
   mounted() {
