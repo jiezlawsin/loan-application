@@ -1,0 +1,55 @@
+name: Deploy API to Railway
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+
+      - name: Install dependencies
+        run: |
+          cd api
+          npm ci
+
+      - name: Build (if using TypeScript)
+        run: |
+          cd api
+          npm run build
+
+      - name: Copy .env.sample to .env
+        run: |
+          cd api
+          cp .env.sample .env
+
+      - name: Replace environment variables in .env
+        run: |
+          cd api
+          sed -i 's|DB_HOST=.*|DB_HOST=${{ secrets.DB_HOST }}|' .env
+          sed -i 's|DB_NAME=.*|DB_NAME=${{ secrets.DB_NAME }}|' .env
+          sed -i 's|DB_USER=.*|DB_USER=${{ secrets.DB_NAME }}|' .env
+          sed -i 's|DB_PASS=.*|DB_PASS=${{ secrets.DB_NAME }}|' .env
+          sed -i 's|DB_PORT=.*|DB_PORT=${{ secrets.DB_PORT }}|' .env
+          sed -i 's|RAILWAY_TOKEN=.*|RAILWAY_TOKEN=${{ secrets.RAILWAY_TOKEN }}|' .env
+          # Add more lines for other variables as needed
+
+      - name: Install Railway CLI
+        run: npm install -g railway
+
+      - name: Deploy to Railway
+        run: |
+          cd api
+          railway up --service loan-application
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
