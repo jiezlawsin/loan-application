@@ -50,6 +50,7 @@ jobs:
       - name: Deploy to Railway
         run: |
           cd api
+          grep DATABASE_URL .env
           railway up
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
