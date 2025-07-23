@@ -37,7 +37,6 @@ jobs:
           sed -i 's|DB_PASS=.*|DB_PASS=${{ secrets.DB_NAME }}|' .env
           sed -i 's|DB_PORT=.*|DB_PORT=${{ secrets.DB_PORT }}|' .env
           sed -i 's|RAILWAY_TOKEN=.*|RAILWAY_TOKEN=${{ secrets.RAILWAY_TOKEN }}|' .env
-          # Add more lines for other variables as needed
 
       - name: Build (if using TypeScript)
         run: |
@@ -50,6 +49,7 @@ jobs:
       - name: Deploy to Railway
         run: |
           cd api
+          grep .env
           railway up --service perfect-imagination
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
