@@ -50,6 +50,6 @@ jobs:
       - name: Deploy to Railway
         run: |
           cd api
-          railway up
+          railway up --service perfect-imagination
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
